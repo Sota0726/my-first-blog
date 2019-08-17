@@ -6,6 +6,9 @@ from .forms import PostForm
 from django.shortcuts import redirect
 from django.contrib.auth.decorators import login_required
 from .forms import PostForm, CommentForm
+from django.contrib.auth.models import User
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import authenticate, login
 
 def post_list(request):
     posts = Post.objects.filter(published_date__lte=timezone.now()).order_by('published_date')
@@ -61,6 +64,7 @@ def post_remove(request, pk):
     post.delete()
     return redirect('post_list')
 
+@login_required
 def add_comment_to_post(request, pk):
     post = get_object_or_404(Post, pk=pk)
     if request.method == "POST":
@@ -85,3 +89,25 @@ def comment_remove(request, pk):
     comment = get_object_or_404(Comment, pk=pk)
     comment.delete()
     return redirect('post_detail', pk=comment.post.pk)
+
+def users_detail(request, pk):
+    user = get_object_or_404(User, pk=pk)
+    return render(request, 'blog/users_detail.html', {'user': user})
+
+def signup(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST) # ユーザーインスタンスを作成
+        if form.is_valid():
+            new_user = form.save() # ユーザーインスタンスを保存
+            input_username = form.cleaned_data['username']
+            input_password = form.cleaned_data['password1']
+            # フォームの入力値で認証できればユーザーオブジェクト、できなければNoneを返す
+            new_user = authenticate(username=input_username, password=input_password)
+            # 認証成功時のみ、ユーザーをログインさせる
+            if new_user is not None:
+                # loginメソッドは、認証ができてなくてもログインさせることができる。→上のauthenticateで認証を実行する
+                login(request, new_user)
+                return redirect('post_list')
+    else:
+        form = UserCreationForm()
+    return render(request, 'blog/signup.html', {'form': form})

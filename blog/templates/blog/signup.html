@@ -1,0 +1,25 @@
+{% extends 'blog/base.html' %}
+
+{% block content %}
+
+<h2>User Registration</h2>
+
+<form method="post" action="{% url 'signup' %}">{% csrf_token %}
+    <label>User Name</label>
+    {{ form.username }}
+    {{ form.username.errors }}
+    <br>
+    <label>Password</label>
+    {{ form.password1 }}
+    {{ form.password1.errors }}
+    <br>
+    <label>Password (confirm)</label>
+    {{ form.password2 }}
+    {{ form.password2.errors }}
+    <br>
+    <input type="submit" value="Sign Up">
+</form>
+
+<p><a href="{% url 'login' %}">Login is Here.</a></p>
+
+{% endblock %}
